@@ -1,89 +1,34 @@
-version: "3.9"
+version: '3.8'
 
-services:
-   backend:
-      restart: always
-      build:
-         context: ./electronic_backend
-         dockerfile: Dockerfile.dev
-      container_name: library_mern_nginx
-    
-      volumes:
-         - /app/node_modules
-         - ./electronic_backend:/app
-      ports:
-          - 5000:5000
-      depends_on:
-         - mongodb
-      environment:
-         NODE_ENV: ${NODE_ENV}
-         MONGO_URI: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb
-      networks:
-         - library-mern-api
-
-   mongodb:
-      image: mongo
-      restart: always
-      ports:
-         - 27017:27017
-      environment:
-         MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-         MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      volumes:
-         # for persistence storage
-         - mongodb-data:/data/db
-      networks:
-         - library-mern-api
-   mongo-express:
-      image: mongo-express
-      depends_on:
-         - mongodb
-      ports:
-         - 8081:8081
-      environment:
-         ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME}
-         ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD}
-         ME_CONFIG_MONGODB_SERVER: mongodb
-         ME_CONFIG_BASICAUTH_USERNAME: admin
-         ME_CONFIG_BASICAUTH_PASSWORD: admin123456
-      volumes:
-         - mongodb-data
-      networks:
-         - library-mern-api
-
-   frontend:
-      restart: always
-      build:
-         context: ./electronic_frontend
-         dockerfile: Dockerfile.dev
-      container_name: library_mern_frontend
-      volumes:
-         - ./app/node_modules
-         - ./electronic_frontend:/app
-      ports:
-          - 3000:3000
-      depends_on:
-         - library-api
-      networks:
-         - library-mern-api
-
-   nginx:
-      restart: always
-      depends_on:
-         - library-api
-         - client
-      build:
-         context: ./nginx
-         dockerfile: Dockerfile.dev
-      ports:
-         - 8080:80
-      networks:
-         - library-mern-api
-
-networks:
-   library-mern-api:
-      driver: bridge
-
+services: 
+  frontend:
+    image: izerekerie/frontend-image:latest
+    stdin_open: true 
+    tty: true 
+    build: 
+      context: electronic_frontend
+      dockerfile: Dockerfile
+    ports:
+      - '80:3000'
+  backend:
+    image: izerekerie/online_electricity_backend_image:latest
+    stdin_open: true
+    tty: true 
+    build: 
+      context: izerekerie/online_electricity_backend_image:latest
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+  db:
+    image: izerekerie/db-image:latest
+    stdin_open: true
+    tty: true 
+    build:
+       context: .
+       dockerfile: db.Dockerfile
+    ports:
+      - '5832:5832'
+    volumes:
+      - mongodb-data:/data/db
 volumes:
-   mongodb-data:
-      driver: local
+  db:
